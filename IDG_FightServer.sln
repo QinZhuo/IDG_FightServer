@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2035
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IDG_FightServer", "IDG_FightServer\IDG_FightServer.csproj", "{41C7E66F-B355-4F20-B3E1-EE7043EFC3F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RatioTest", "RatioTest\RatioTest.csproj", "{35416A23-1767-46FA-A8AB-4A263DC0DA3A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{41C7E66F-B355-4F20-B3E1-EE7043EFC3F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41C7E66F-B355-4F20-B3E1-EE7043EFC3F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41C7E66F-B355-4F20-B3E1-EE7043EFC3F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41C7E66F-B355-4F20-B3E1-EE7043EFC3F9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{35416A23-1767-46FA-A8AB-4A263DC0DA3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35416A23-1767-46FA-A8AB-4A263DC0DA3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35416A23-1767-46FA-A8AB-4A263DC0DA3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35416A23-1767-46FA-A8AB-4A263DC0DA3A}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {15027278-3C0E-4C9B-8F41-1B92EC36DE8C}
+	EndGlobalSection
+EndGlobal
