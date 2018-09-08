@@ -9,13 +9,13 @@ namespace IDG.FightServer
 {
     class FightServer
     {
-        public List<Connection> ClientList
+        public IndexObjectPool<Connection> ClientPool
         {
             get
             {
-                lock (_clientList)
+                lock (_clientPool)
                 {
-                    return _clientList;
+                    return _clientPool;
                 }
             }
         }
@@ -30,8 +30,9 @@ namespace IDG.FightServer
                 }
             }
         }
+
+        private IndexObjectPool<Connection> _clientPool;
         
-        private List<Connection> _clientList = new List<Connection>();
         public Socket _serverListener;
         public Timer timer;
         public Byte[] stepMessage;
@@ -43,6 +44,7 @@ namespace IDG.FightServer
         public void StartServer(string host,int port,int maxServerCount)
         {
             _serverListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            _clientPool = new IndexObjectPool<Connection>(maxServerCount);
             Listener.NoDelay = true;
             timer = new Timer(100);
             timer.AutoReset = true;
@@ -52,7 +54,7 @@ namespace IDG.FightServer
             Listener.Listen(maxServerCount);
             Listener.BeginAccept(AcceptCallBack, Listener);
             stepMessage = new byte[1];
-            ClientList.Clear();
+            //ClientPool.Clear();
             
             Console.WriteLine("服务器启动成功");
         }
@@ -61,16 +63,21 @@ namespace IDG.FightServer
             
                 
              Socket client = Listener.EndAccept(ar);
-             Connection con = new Connection();
-
+            int index= ClientPool.Get();
             
-         
-             con.clientId =ClientList.Count;
-              ClientList.Add(con);
-              stepMessage = new byte[ClientList.Count];
-            con.socket = client;
-            SendIninInfo((byte)con.clientId);
-            con.socket.BeginReceive(con.readBuff,0,Connection.buffer_size, SocketFlags.None, ReceiveCallBack, con);
+            if (index >=0)
+            {
+                Connection con = ClientPool[index];
+                con.clientId = index;
+                stepMessage = new byte[ClientPool.Count];
+                con.socket = client;
+                SendIninInfo((byte)con.clientId);
+                con.socket.BeginReceive(con.readBuff, 0, Connection.buffer_size, SocketFlags.None, ReceiveCallBack, con);
+            }
+            else
+            {
+                Console.WriteLine("服务器人数达到上限");
+            }
             Listener.BeginAccept(AcceptCallBack, Listener);
         }
         protected void ReceiveCallBack(IAsyncResult ar)
@@ -81,7 +88,14 @@ namespace IDG.FightServer
             {
                 con.length= con.socket.EndReceive(ar);
 
-
+                if (con.length <= 0)
+                {
+                    Console.WriteLine("客户端断开连接：" + ClientPool[con.clientId].socket.LocalEndPoint + "ClientID:" + con.clientId);
+                    con.socket.Close();
+                    ClientPool.Recover(con.clientId);
+                    
+                    return;
+                }
                 ProtocolBase protocol = new ByteProtocol();
                
                 protocol.InitMessage(con.ReceiveBytes);
@@ -108,7 +122,7 @@ namespace IDG.FightServer
         protected void SendToClient(int clientId,byte[] bytes)
         {
           
-                ClientList[clientId].socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, null, null);
+                ClientPool[clientId].socket.BeginSend(bytes, 0, bytes.Length, SocketFlags.None, null, null);
                 //Console.WriteLine(DateTime.Now.ToLongTimeString() + "clientId：" + clientId + " mesagge " + bytes[0]+" length "+bytes.Length);
             
            
@@ -121,11 +135,11 @@ namespace IDG.FightServer
             protocol.push(clientId);
             
             SendToClient(clientId, protocol.GetByteStream());
-            Console.WriteLine("客户端连接成功：" + ClientList[clientId].socket.LocalEndPoint + "ClientID:" + clientId);
+            Console.WriteLine("客户端连接成功：" + ClientPool[clientId].socket.LocalEndPoint + "ClientID:" + clientId);
         }
         protected void SendStepAll(object sender, ElapsedEventArgs e)
         {
-            if (ClientList.Count < 0) return;
+            if (ClientPool.Count < 0) return;
             byte[] temp = stepMessage.ToArray();
             int length = stepMessage.Length;
             ProtocolBase protocol = new ByteProtocol();
@@ -137,11 +151,11 @@ namespace IDG.FightServer
             }
             temp = protocol.GetByteStream();
            
-                for (int i = 0; i < ClientList.Count; i++)
+                for (int i = 0; i < ClientPool.Count; i++)
                 {
                     SendToClient(i, temp);
                 }
-                stepMessage = new byte[ClientList.Count];
+                stepMessage = new byte[ClientPool.Count];
            
             
         }

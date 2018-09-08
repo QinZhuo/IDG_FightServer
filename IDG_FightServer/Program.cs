@@ -35,14 +35,17 @@ namespace IDG_FightServer
             //Console.WriteLine(protocol.getRatio());
             //Console.WriteLine(protocol.getBoolean());
             //Console.WriteLine(protocol.getString());
-         
+
+          
+            
             FightServer fightServer = new FightServer();
-            fightServer.StartServer("127.0.0.1", 12345, 10);
+            fightServer.StartServer("127.0.0.1", 12345, 2);
             while (true)
             {
                 Console.ReadLine();
             }
-            
+
         }
+        
     }
 }
