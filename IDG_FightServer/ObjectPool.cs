@@ -10,6 +10,7 @@ namespace IDG
 
         protected List<T> _objList;
         protected List<bool> _usedList;
+        protected int _activeCount;
         public IndexObjectPool(int preCreate) 
         {
             _objList = new List<T>();
@@ -28,6 +29,7 @@ namespace IDG
                 if (!_usedList[i])
                 {
                     _usedList[i] = true;
+                    _activeCount++;
                     return i;
                 }
             }
@@ -40,16 +42,43 @@ namespace IDG
                 return _objList.Count;
             }
         }
+        public int ActiveCount
+        {
+            get
+            {
+                return _activeCount;
+            }
+        }
         public void Recover(int index)
         {
             _usedList[index] = false;
+            _activeCount--;
         }
 
         public T this[int index]
         {
             get
             {
-                return _objList[index];
+                if (_usedList[index])
+                {
+                    return _objList[index];
+                }
+                else
+                {
+                    Console.WriteLine("被回收的池对象" + _objList[index]);
+                    //throw new Exception("被回收的池对象" + _objList[index]);
+                    return _objList[index];
+                }
+            }
+        }
+        public void Foreach(Action<T> action)
+        {
+            for (int i = 0; i < Count; i++)
+            {
+                if (_usedList[i])
+                {
+                    action(_objList[i]);
+                }
             }
         }
 

@@ -17,6 +17,7 @@ namespace IDG
         public abstract void push(Boolean boolean);
         public abstract void push(Ratio ratio);
         public abstract void push(String str);
+        //public abstract bool InitNext(byte[] bytes);
 
 
         public abstract Int32 getInt32();
@@ -35,11 +36,15 @@ namespace IDG
         protected int lastOffset = 0;
         protected UInt16 strLength = 0;
         protected byte[] tempBytes;
-        public override int Length { get { return byteList.Count; } }
+        public override int Length { get { return bytes.Length - (index + lastOffset); } }
         public override byte[] GetByteStream()
         {
-            bytes = byteList.ToArray();
-            return bytes;
+            //  push(byteList.Count);
+
+            // bytes = byteList.ToArray();
+            // bytes = byteList.ToArray();
+
+            return byteList.ToArray();
         }
 
         public override int getInt32()
@@ -81,7 +86,6 @@ namespace IDG
         {
             this.bytes = bytes;
             index = 0;
-            byteList.Clear();
             strLength = 0;
             return this;
         }
@@ -135,8 +139,10 @@ namespace IDG
 
         public override void push(Ratio ratio)
         {
-            push(ratio.u);
-            push(ratio.d);
+            //push(ratio.u);
+            //push(ratio.d);
         }
+
+
     }
 }
