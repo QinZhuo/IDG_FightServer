@@ -8,9 +8,9 @@ namespace IDG
     public class Connection
     {
         protected static readonly int ActiveNum=30;
-        public readonly static int buffer_size = 1024*8;
+        public readonly static int buffer_size = 1024;
         public int clientId;
-        public byte[] readBuff = new byte[buffer_size];
+        public  byte[] readBuff = new byte[buffer_size];
         public byte[] lenBytes = new byte[4];
         public Socket socket;
         public int msgLength = 0;

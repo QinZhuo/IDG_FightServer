@@ -65,7 +65,7 @@ namespace IDG
                 }
                 else
                 {
-                    Console.WriteLine("被回收的池对象" + _objList[index]);
+                    //Console.WriteLine("被回收的池对象" + _objList[index]);
                     //throw new Exception("被回收的池对象" + _objList[index]);
                     return _objList[index];
                 }
