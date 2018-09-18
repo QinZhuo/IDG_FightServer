@@ -39,7 +39,7 @@ namespace IDG_FightServer
           
             
             FightServer fightServer = new FightServer();
-            fightServer.StartServer("127.0.0.1", 12345, 10);
+            fightServer.StartServer("127.0.0.1", 12345, 5);
             while (true)
             {
                 Console.ReadLine();

@@ -40,12 +40,31 @@ namespace IDG.FightServer
                 }
             }
         }
+        public Byte[][] StepMessage
+        {
+            get
+            {
+                lock(_stepMessage)
+                {
+                    return _stepMessage;
+                }
+                
+            }
+            set {
+                lock (_stepMessage)
+                {
+                    _stepMessage = value;
+                }
+            }
+        }
         protected List<byte[]> _frameList;
+       
         private IndexObjectPool<Connection> _clientPool;
         
         public Socket _serverListener;
         public Timer timer;
-        public Byte[] stepMessage;
+        private int framSize;
+        public Byte[][] _stepMessage;
        // public byte keyInfo;
         public FightServer()
         {
@@ -64,7 +83,12 @@ namespace IDG.FightServer
             Listener.Bind(new IPEndPoint(IPAddress.Parse(host), port));
             Listener.Listen(maxServerCount);
             Listener.BeginAccept(AcceptCallBack, Listener);
-            stepMessage = new byte[1];
+            _stepMessage = new byte[maxServerCount][];
+            framSize = 0;
+            for (int i = 0; i < _stepMessage.Length; i++)
+            {
+                _stepMessage[i] = new byte[framSize];
+            }
             //ClientPool.Clear();
 
             ServerLog.LogServer("服务器启动成功",0);
@@ -80,7 +104,11 @@ namespace IDG.FightServer
                 ClientPool[index].SetActive();
                 Connection con = ClientPool[index];
                 con.clientId = index;
-                stepMessage = new byte[ClientPool.ActiveCount];
+                StepMessage = new byte[ClientPool.Count][];
+                for (int i = 0; i < StepMessage.Length; i++)
+                {
+                    StepMessage[i] = new byte[framSize];
+                }
                 con.socket = client;
                 SendIninInfo((byte)con.clientId);
                 if(FrameList.Count>0)SendToClientAllFrame(index);
@@ -163,7 +191,7 @@ namespace IDG.FightServer
             // string str = Encoding.UTF8.GetString(connection.readBuff, sizeof(Int32), connection.length);
             ProtocolBase message = new ByteProtocol();
             message.InitMessage(connection.ReceiveBytes);
-            ParseMessage(message);
+            ParseMessage(connection, message);
 
             //Send(connection, str);
             int count = connection.length - connection.msgLength - sizeof(Int32);
@@ -174,17 +202,22 @@ namespace IDG.FightServer
                 ProcessData(connection);
             }
         }
-        protected void ParseMessage(ProtocolBase protocol)
+        protected void ParseMessage(Connection con,ProtocolBase protocol)
         {
-            lock (stepMessage)
-            {
+            
                 switch ((MessageType)protocol.getByte())
                 {
                     case MessageType.Frame:
-                        byte t1 = protocol.getByte(), t2 = protocol.getByte();
-                        stepMessage[t1] = t2;
+                        byte t1 = protocol.getByte();byte[] t2 = protocol.getLastBytes();
+                    if (framSize != t2.Length) { framSize = t2.Length;
+                        for (int i = 0; i < StepMessage.Length; i++)
+                        {
+                            StepMessage[i] = new byte[framSize];
+                        }
+                    }
+                    StepMessage[con.clientId] = t2;
                         ClientPool[t1].SetActive();
-                        ServerLog.LogClient("Key:[" + t2 + "]", 3, t1);
+                        ServerLog.LogClient("Key:[" + t2.Length + "]", 3, t1);
                         break;
                     case MessageType.ClientReady:
                         break;
@@ -193,10 +226,11 @@ namespace IDG.FightServer
                         //break;
                 }
 
-            }
+            
             if (protocol.Length > 0)
             {
-                ParseMessage(protocol);
+                ServerLog.LogServer("剩余未解析" + protocol.Length, 1);
+                //ParseMessage(con,protocol);
             }
         }
         protected void SendToClient(int clientId,byte[] bytes)
@@ -214,6 +248,7 @@ namespace IDG.FightServer
             
            
         }
+
         protected void SendIninInfo(byte clientId)
         {
             ProtocolBase protocol = new ByteProtocol();
@@ -227,6 +262,7 @@ namespace IDG.FightServer
         }
         protected void SendToClientAllFrame(int clientId)
         {
+            if (framSize <= 0) return;
             byte[][] list= FrameList.ToArray();
             ServerLog.LogClient("中途加入 发送历史帧："+ list.Length, 3, clientId);
             foreach (var item in list)
@@ -237,6 +273,7 @@ namespace IDG.FightServer
         }
         protected void SendStepAll(object sender, ElapsedEventArgs e)
         {
+            if (framSize <= 0) return;
             if (ClientPool.ActiveCount <= 0)
             {
                 if (FrameList.Count > 0)
@@ -251,19 +288,24 @@ namespace IDG.FightServer
             {
                 ServerLog.LogServer("玩家进入服务器 战斗开始！！！",1);
             }
-            byte[] temp = stepMessage.ToArray();
-            int length = stepMessage.Length;
+            ServerLog.LogServer("0[" + FrameList.Count + "]", 1);
+            
+            byte[][] temp = StepMessage;
+            int length = temp.Length;
             ProtocolBase protocol = new ByteProtocol();
             protocol.push((byte)MessageType.Frame);
             protocol.push((byte)length);
+            //ServerLog.LogServer("获取[" + FrameList.Count + "]", 1);
             for (int i = 0; i < length; i++)
             {
                 protocol.push(temp[i]);
             }
-            temp = protocol.GetByteStream();
-            FrameList.Add(temp);
+            ServerLog.LogServer("生成帧信息[" + length*temp[0].Length + "]", 1);
+            byte[] temp2 = protocol.GetByteStream();
+
+            FrameList.Add(temp2);
           
-            ClientPool.Foreach((con) => { SendToClient(con.clientId, temp);
+            ClientPool.Foreach((con) => { SendToClient(con.clientId, temp2);
                 if (!con.ActiveCheck())
                 {
                     ServerLog.LogClient("客户端断线 中止连接：" + ClientPool[con.clientId].socket.LocalEndPoint + "ClientID:" + con.clientId, 0, con.clientId);
@@ -275,9 +317,13 @@ namespace IDG.FightServer
             });
            
             ServerLog.LogServer("帧同步["+ FrameList.Count+"]",2);
-            stepMessage = new byte[ClientPool.Count];
-            
-            
+            //StepMessage = new byte[ClientPool.Count][];
+            //for (int i = 0; i < StepMessage.Length; i++)
+            //{
+            //    StepMessage[i] = new byte[framSize];
+            //}
+
+
         }
         
     }
