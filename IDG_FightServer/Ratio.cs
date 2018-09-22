@@ -7,181 +7,421 @@ namespace IDG
 {
     public struct Ratio
     {
-
-        private static readonly int precision = 1000;
-        private int _ratio;
-        public int ToPrecisionInt()
+        public static int Fix_Fracbits = 16;
+        public static Ratio Zero = new Ratio(0);
+        internal Int64 m_Bits;
+        public Ratio(int x)
         {
-            return _ratio;
+            m_Bits = (x << Fix_Fracbits);
         }
-        public void SetPrecisionInt(int r)
+        public Ratio(float x)
         {
-            _ratio = r;
+            m_Bits = (Int64)((x) * (1 << Fix_Fracbits));
+            //x*(((Int64)(1)<<Fix_Fracbits))
         }
-        public static Ratio Max(Ratio a, Ratio b)
+        public Ratio(Int64 x)
         {
-            return a > b ? a : b;
+            m_Bits = ((x) * (1 << Fix_Fracbits));
         }
-
-        public Ratio Abs()
+        public Int64 GetValue()
         {
-            return new Ratio(Math.Abs(_ratio));
+            return m_Bits;
+        }
+        public Ratio SetValue(Int64 i)
+        {
+            m_Bits = i;
+            return this;
+        }
+        public static Ratio Lerp(Ratio a, Ratio b, float t)
+        {
+            return a + (b - a) * t;
         }
         public static Ratio Lerp(Ratio a, Ratio b, Ratio t)
         {
             return a + (b - a) * t;
         }
-        public Ratio(int up, int down)
-        {
-            _ratio = (up * precision) / down;
-        }
-        public int ToInt()
-        {
-            return _ratio / precision;
-        }
-        public Ratio(float up)
-        {
-            _ratio = (int)(up * precision);
-
-        }
-        private Ratio(int precisionRatio)
-        {
-            _ratio = precisionRatio;
-
-        }
-
-
-        public static Ratio operator +(Ratio a, Ratio b)
-        {
-            return new Ratio(a._ratio + b._ratio);
-        }
-        public static Ratio operator +(Ratio a, int b)
-        {
-            return new Ratio(a._ratio + b * precision);
-        }
-        public static Ratio operator -(Ratio a, Ratio b)
-        {
-            return new Ratio(a._ratio - b._ratio);
-        }
-        public static Ratio operator -(Ratio a, int b)
-        {
-            return new Ratio(a._ratio - b * precision);
-        }
-        public static Ratio operator *(Ratio a, Ratio b)
-        {
-            return new Ratio(a._ratio * b._ratio / precision);
-        }
-        public static Ratio operator *(Ratio a, int b)
+        public Ratio Abs()
         {
 
-            return new Ratio(a._ratio * b);
-        }
-
-        public static Ratio operator /(Ratio a, Ratio b)
-        {
-
-            return new Ratio(a._ratio * precision / b._ratio);
-        }
-        //public static Ratio operator *(Ratio a, float b)
-        //{
-        //    return new Ratio(a._ratio *UnityEngine.Mathf.Floor(b));
-        //}
-        public static Ratio operator /(Ratio a, int b)
-        {
-            // UnityEngine.Debug.Log("[Ratio] " + a.ToString() + "/ [int] " + b + "=" + new Ratio(a._ratio / b));
-            return new Ratio(a._ratio / b);
-        }
-        public static Ratio operator %(Ratio a, int b)
-        {
-            return new Ratio(a._ratio % (b * precision));
-        }
-        public static bool operator >(Ratio a, Ratio b)
-        {
-            return a._ratio > b._ratio;
-        }
-        public static bool operator <(Ratio a, Ratio b)
-        {
-            return a._ratio < b._ratio;
-        }
-        public static bool operator <(Ratio a, int b)
-        {
-            return a._ratio < b * precision;
-        }
-        public static bool operator >(Ratio a, int b)
-        {
-            return a._ratio > b * precision;
-        }
-        public static bool operator <=(Ratio a, int b)
-        {
-            return a._ratio <= b * precision;
-        }
-        public static bool operator >=(Ratio a, int b)
-        {
-            return a._ratio >= b * precision;
-        }
-        public static bool operator >=(Ratio a, Ratio b)
-        {
-            return a._ratio >= b._ratio;
-        }
-        public static bool operator <=(Ratio a, Ratio b)
-        {
-            return a._ratio <= b._ratio;
-        }
-        public static bool operator ==(Ratio a, Ratio b)
-        {
-            return a._ratio == b._ratio;
-        }
-        public static bool operator ==(Ratio a, int b)
-        {
-            return a._ratio == b * precision;
-        }
-        public static bool operator !=(Ratio a, int b)
-        {
-            return a._ratio != b * precision;
-        }
-        public static bool operator !=(Ratio a, Ratio b)
-        {
-            return a._ratio != b._ratio;
-        }
-        public static Ratio operator -(Ratio a)
-        {
-            return new Ratio(-a._ratio);
-        }
-        public float ToFloat()
-        {
-            return _ratio * 1.0f / precision;
-        }
-
-        public override string ToString()
-        {
-            return ToFloat().ToString();
-        }
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
-
-        public override bool Equals(object obj)
-        {
-            return base.Equals(obj);
+            return Ratio.Abs(this);
         }
         public Ratio Sqrt()
         {
-            return SQR(this);
+            return Ratio.Sqrt(this);
         }
-        Ratio SQR(Ratio a)
+        //******************* +  **************************
+        public static Ratio operator +(Ratio p1, Ratio p2)
         {
-            Ratio x = a, y = new Ratio(0f), z = new Ratio(1);
-            while (MathR.Abs(x - y) > z)
-            {
-                y = x;
-                x = new Ratio(1, 2) * (x + a / x);
-            }
-            return x;
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits + p2.m_Bits;
+            return tmp;
+        }
+        public static Ratio operator +(Ratio p1, int p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits + (Int64)(p2 << Fix_Fracbits);
+            return tmp;
+        }
+        public static Ratio operator +(int p1, Ratio p2)
+        {
+            return p2 + p1;
+        }
+        public static Ratio operator +(Ratio p1, Int64 p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits + p2 << Fix_Fracbits;
+            return tmp;
+        }
+        public static Ratio operator +(Int64 p1, Ratio p2)
+        {
+            return p2 + p1;
         }
 
-    }
+        public static Ratio operator +(Ratio p1, float p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits + (Int64)(p2 * (1 << Fix_Fracbits));
+            return tmp;
+        }
+        public static Ratio operator +(float p1, Ratio p2)
+        {
+            Ratio tmp = p2 + p1;
+            return tmp;
+        }
+        //*******************  -  **************************
+        public static Ratio operator -(Ratio p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits - p2.m_Bits;
+            return tmp;
+        }
 
+        public static Ratio operator -(Ratio p1, int p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits - (Int64)(p2 << Fix_Fracbits);
+            return tmp;
+        }
+
+        public static Ratio operator -(int p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = (p1 << Fix_Fracbits) - p2.m_Bits;
+            return tmp;
+        }
+        public static Ratio operator -(Ratio p1, Int64 p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits - (p2 << Fix_Fracbits);
+            return tmp;
+        }
+        public static Ratio operator -(Int64 p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = (p1 << Fix_Fracbits) - p2.m_Bits;
+            return tmp;
+        }
+
+        public static Ratio operator -(float p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = (Int64)(p1 * (1 << Fix_Fracbits)) - p2.m_Bits;
+            return tmp;
+        }
+        public static Ratio operator -(Ratio p1, float p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1.m_Bits - (Int64)(p2 * (1 << Fix_Fracbits));
+            return tmp;
+        }
+
+        //******************* * **************************
+        public static Ratio operator *(Ratio p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = ((p1.m_Bits) * (p2.m_Bits)) >> (Fix_Fracbits);
+            return tmp;
+        }
+
+        public static Ratio operator *(int p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = p1 * p2.m_Bits;
+            return tmp;
+        }
+        public static Ratio operator *(Ratio p1, int p2)
+        {
+            return p2 * p1;
+        }
+        public static Ratio operator *(Ratio p1, float p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = (Int64)(p1.m_Bits * p2);
+            return tmp;
+        }
+        public static Ratio operator *(float p1, Ratio p2)
+        {
+            Ratio tmp;
+            tmp.m_Bits = (Int64)(p1 * p2.m_Bits);
+            return tmp;
+        }
+        //******************* / **************************
+        public static Ratio operator /(Ratio p1, Ratio p2)
+        {
+            Ratio tmp;
+            if (p2 == Ratio.Zero)
+            {
+               // UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                tmp.m_Bits = (p1.m_Bits) * (1 << Fix_Fracbits) / (p2.m_Bits);
+            }
+            return tmp;
+        }
+        public static Ratio operator /(Ratio p1, int p2)
+        {
+            Ratio tmp;
+            if (p2 == 0)
+            {
+                //UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                tmp.m_Bits = p1.m_Bits / (p2);
+            }
+            return tmp;
+        }
+        public static Ratio operator %(Ratio p1, int p2)
+        {
+            Ratio tmp;
+            if (p2 == 0)
+            {
+                //UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                tmp.m_Bits = (p1.m_Bits % (p2 << Fix_Fracbits));
+            }
+            return tmp;
+        }
+        public static Ratio operator /(int p1, Ratio p2)
+        {
+            Ratio tmp;
+            if (p2 == Zero)
+            {
+               // UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                Int64 tmp2 = ((Int64)p1 << Fix_Fracbits << Fix_Fracbits);
+                tmp.m_Bits = tmp2 / (p2.m_Bits);
+            }
+            return tmp;
+        }
+        public static Ratio operator /(Ratio p1, Int64 p2)
+        {
+            Ratio tmp;
+            if (p2 == 0)
+            {
+                //UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                tmp.m_Bits = p1.m_Bits / (p2);
+            }
+            return tmp;
+        }
+        public static Ratio operator /(Int64 p1, Ratio p2)
+        {
+            Ratio tmp;
+            if (p2 == Zero)
+            {
+               // UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                if (p1 > Int32.MaxValue || p1 < Int32.MinValue)
+                {
+                    tmp.m_Bits = 0;
+                    return tmp;
+                }
+                tmp.m_Bits = (p1 << Fix_Fracbits) / (p2.m_Bits);
+            }
+            return tmp;
+        }
+        public static Ratio operator /(float p1, Ratio p2)
+        {
+            Ratio tmp;
+            if (p2 == Zero)
+            {
+                //UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                Int64 tmp1 = (Int64)p1 * ((Int64)1 << Fix_Fracbits << Fix_Fracbits);
+                tmp.m_Bits = (tmp1) / (p2.m_Bits);
+            }
+            return tmp;
+        }
+        public static Ratio operator /(Ratio p1, float p2)
+        {
+            Ratio tmp;
+            if (p2 > -0.000001f && p2 < 0.000001f)
+            {
+               // UnityEngine.Debug.LogError("/0");
+                tmp.m_Bits = Zero.m_Bits;
+            }
+            else
+            {
+                tmp.m_Bits = (p1.m_Bits << Fix_Fracbits) / ((Int64)(p2 * (1 << Fix_Fracbits)));
+            }
+            return tmp;
+        }
+        public static Ratio Sqrt(Ratio p1)
+        {
+            Ratio tmp;
+            Int64 ltmp = p1.m_Bits * (1 << Fix_Fracbits);
+            tmp.m_Bits = (Int64)Math.Sqrt(ltmp);
+            return tmp;
+        }
+        public static bool operator >(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits > p2.m_Bits) ? true : false;
+        }
+        public static bool operator <(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits < p2.m_Bits) ? true : false;
+        }
+        public static bool operator <=(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits <= p2.m_Bits) ? true : false;
+        }
+        public static bool operator >=(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits >= p2.m_Bits) ? true : false;
+        }
+        public static bool operator !=(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits != p2.m_Bits) ? true : false;
+        }
+        public static bool operator ==(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits == p2.m_Bits) ? true : false;
+        }
+
+        public static bool Equals(Ratio p1, Ratio p2)
+        {
+            return (p1.m_Bits == p2.m_Bits) ? true : false;
+        }
+
+        public bool Equals(Ratio right)
+        {
+            if (m_Bits == right.m_Bits)
+            {
+                return true;
+            }
+            return false;
+        }
+
+        public static bool operator >(Ratio p1, float p2)
+        {
+            return (p1.m_Bits > (p2 * (1 << Fix_Fracbits))) ? true : false;
+        }
+        public static bool operator <(Ratio p1, float p2)
+        {
+            return (p1.m_Bits < (p2 * (1 << Fix_Fracbits))) ? true : false;
+        }
+        public static bool operator <=(Ratio p1, float p2)
+        {
+            return (p1.m_Bits <= p2 * (1 << Fix_Fracbits)) ? true : false;
+        }
+        public static bool operator >=(Ratio p1, float p2)
+        {
+            return (p1.m_Bits >= p2 * (1 << Fix_Fracbits)) ? true : false;
+        }
+        public static bool operator !=(Ratio p1, float p2)
+        {
+            return (p1.m_Bits != p2 * (1 << Fix_Fracbits)) ? true : false;
+        }
+        public static bool operator ==(Ratio p1, float p2)
+        {
+            return (p1.m_Bits == p2 * (1 << Fix_Fracbits)) ? true : false;
+        }
+
+        //public static FPoint Cos(FPoint p1)
+        //{
+        //    return FP.TrigonometricFunction.Cos(p1);
+        //}
+        //public static FPoint Sin(FPoint p1)
+        //{
+        //    return FP.TrigonometricFunction.Sin(p1);
+        //}
+
+        public static Ratio Max()
+        {
+            Ratio tmp;
+            tmp.m_Bits = Int64.MaxValue;
+            return tmp;
+        }
+
+        public static Ratio Max(Ratio p1, Ratio p2)
+        {
+            return p1.m_Bits > p2.m_Bits ? p1 : p2;
+        }
+        public static Ratio Min(Ratio p1, Ratio p2)
+        {
+            return p1.m_Bits < p2.m_Bits ? p1 : p2;
+        }
+
+        public static Ratio Precision()
+        {
+            Ratio tmp;
+            tmp.m_Bits = 1;
+            return tmp;
+        }
+
+        public static Ratio MaxValue()
+        {
+            Ratio tmp;
+            tmp.m_Bits = Int64.MaxValue;
+            return tmp;
+        }
+        public static Ratio Abs(Ratio P1)
+        {
+            Ratio tmp;
+            tmp.m_Bits = Math.Abs(P1.m_Bits);
+            return tmp;
+        }
+        public static Ratio operator -(Ratio p1)
+        {
+            Ratio tmp;
+            tmp.m_Bits = -p1.m_Bits;
+            return tmp;
+        }
+
+        public float ToFloat()
+        {
+            return m_Bits / (float)(1 << Fix_Fracbits);
+        }
+
+        public int ToInt()
+        {
+            return (int)(m_Bits >> (Fix_Fracbits));
+        }
+        public override string ToString()
+        {
+            double tmp = (double)m_Bits / (double)(1 << Fix_Fracbits);
+            return tmp.ToString();
+        }
+    }
 
 }
 namespace IDG.TrueRatio

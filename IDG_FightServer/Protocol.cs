@@ -68,7 +68,7 @@ namespace IDG
 
         public override Ratio getRatio()
         {
-            return new Ratio(getInt32(), getInt32());
+            return new Ratio(getInt64());
         }
 
         public override string getString()
@@ -145,7 +145,7 @@ namespace IDG
 
         public override void push(Ratio ratio)
         {
-            push(ratio.ToPrecisionInt());
+            push(ratio.GetValue());
 
         }
         //public override void push(V2 v2)
