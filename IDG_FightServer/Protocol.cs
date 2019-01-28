@@ -16,7 +16,7 @@ namespace IDG
         public abstract void push(Byte uint8);
 
         public abstract void push(Boolean boolean);
-        public abstract void push(Ratio ratio);
+
         //public abstract void push(V2 v2);
         public abstract void push(String str);
         public abstract void push(Byte[] bytes);
@@ -28,7 +28,7 @@ namespace IDG
         public abstract UInt16 getUInt16();
         public abstract Byte getByte();
         public abstract Boolean getBoolean();
-        public abstract Ratio getRatio();
+  
         //public abstract V2 getV2();
         public abstract String getString();
         public abstract Byte[] getLastBytes();
@@ -66,11 +66,7 @@ namespace IDG
             return BitConverter.ToInt64(bytes, index);
         }
 
-        public override Ratio getRatio()
-        {
-            return new Ratio(getInt64());
-        }
-
+    
         public override string getString()
         {
             strLength = getUInt16();
@@ -143,11 +139,7 @@ namespace IDG
             byteList.AddRange(tempBytes);
         }
 
-        public override void push(Ratio ratio)
-        {
-            push(ratio.GetValue());
-
-        }
+     
         //public override void push(V2 v2)
         //{
         //    push(v2.x.ToPrecisionInt());
