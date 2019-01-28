@@ -41,9 +41,7 @@
   <ItemGroup>
     <Compile Include="Connection.cs" />
     <Compile Include="FightServer.cs" />
-    <Compile Include="MathR.cs" />
     <Compile Include="ObjectPool.cs" />
-    <Compile Include="Ratio.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Protocol.cs" />
