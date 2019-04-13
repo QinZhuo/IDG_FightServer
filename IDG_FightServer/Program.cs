@@ -36,10 +36,11 @@ namespace IDG_FightServer
             //Console.WriteLine(protocol.getBoolean());
             //Console.WriteLine(protocol.getString());
 
-          
+            Console.WriteLine("请输入监听的IP");
+            string ip = Console.ReadLine();
             
             FightServer fightServer = new FightServer();
-            fightServer.StartServer("127.0.0.1", 12345, 5);
+            fightServer.StartServer(ip, 12345, 5);
             while (true)
             {
                 Console.ReadLine();

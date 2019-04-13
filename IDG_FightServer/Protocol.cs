@@ -154,6 +154,7 @@ namespace IDG
 
         public override void push(byte[] bytes)
         {
+            if (bytes==null|| bytes.Length == 0) return;
             byteList.AddRange(bytes);
         }
 

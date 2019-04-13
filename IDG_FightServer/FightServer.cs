@@ -63,7 +63,7 @@ namespace IDG.FightServer
         
         public Socket _serverListener;
         public Timer timer;
-        private int framSize;
+        //private int framSize;
         public Byte[][] _stepMessage;
        // public byte keyInfo;
         public FightServer()
@@ -84,11 +84,11 @@ namespace IDG.FightServer
             Listener.Listen(maxServerCount);
             Listener.BeginAccept(AcceptCallBack, Listener);
             _stepMessage = new byte[maxServerCount][];
-            framSize = 0;
-            for (int i = 0; i < _stepMessage.Length; i++)
-            {
-                _stepMessage[i] = new byte[framSize];
-            }
+           // framSize = 0;
+            //for (int i = 0; i < _stepMessage.Length; i++)
+            //{
+            //    _stepMessage[i] = new byte[framSize];
+            //}
             //ClientPool.Clear();
 
             ServerLog.LogServer("服务器启动成功",0);
@@ -105,10 +105,10 @@ namespace IDG.FightServer
                 Connection con = ClientPool[index];
                 con.clientId = index;
                 StepMessage = new byte[ClientPool.Count][];
-                for (int i = 0; i < StepMessage.Length; i++)
-                {
-                    StepMessage[i] = new byte[framSize];
-                }
+                //for (int i = 0; i < StepMessage.Length; i++)
+                //{
+                //    StepMessage[i] = new byte[framSize];
+                //}
                 con.socket = client;
                 SendIninInfo((byte)con.clientId);
                 if(FrameList.Count>0)SendToClientAllFrame(index);
@@ -209,14 +209,14 @@ namespace IDG.FightServer
                 {
                     case MessageType.Frame:
                         byte t1 = protocol.getByte();byte[] t2 = protocol.getLastBytes();
-                    if (framSize != t2.Length) { framSize = t2.Length;
-                        for (int i = 0; i < StepMessage.Length; i++)
-                        {
-                            StepMessage[i] = new byte[framSize];
-                        }
-                    }
-                    StepMessage[con.clientId] = t2;
-                        ClientPool[t1].SetActive();
+                        //if (framSize != t2.Length) { framSize = t2.Length;
+                        //    for (int i = 0; i < StepMessage.Length; i++)
+                        //    {
+                        //        StepMessage[i] = new byte[framSize];
+                        //    }
+                        //}
+                        StepMessage[con.clientId] = t2;
+                            ClientPool[t1].SetActive();
                         ServerLog.LogClient("Key:[" + t2.Length + "]", 3, t1);
                         break;
                     case MessageType.ClientReady:
@@ -255,14 +255,14 @@ namespace IDG.FightServer
             protocol.push((byte)MessageType.Init);
             
             protocol.push(clientId);
-            
+            protocol.push((byte)MessageType.end);
             SendToClient(clientId, protocol.GetByteStream());
             ServerLog.LogClient("客户端连接成功：" + ClientPool[clientId].socket.LocalEndPoint + "ClientID:" + clientId, 0, clientId);
       
         }
         protected void SendToClientAllFrame(int clientId)
         {
-            if (framSize <= 0) return;
+           
             byte[][] list= FrameList.ToArray();
             ServerLog.LogClient("中途加入 发送历史帧："+ list.Length, 3, clientId);
             foreach (var item in list)
@@ -273,7 +273,7 @@ namespace IDG.FightServer
         }
         protected void SendStepAll(object sender, ElapsedEventArgs e)
         {
-            if (framSize <= 0) return;
+          
             if (ClientPool.ActiveCount <= 0)
             {
                 if (FrameList.Count > 0)
@@ -298,9 +298,17 @@ namespace IDG.FightServer
             //ServerLog.LogServer("获取[" + FrameList.Count + "]", 1);
             for (int i = 0; i < length; i++)
             {
+                protocol.push(temp[i] != null);
                 protocol.push(temp[i]);
             }
-            ServerLog.LogServer("生成帧信息[" + length*temp[0].Length + "]", 1);
+            if (FrameList.Count == 0)
+            {
+                protocol.push((byte)MessageType.RandomSeed);
+                Random rand = new Random();
+                protocol.push(rand.Next(10000));
+            }
+            protocol.push((byte)MessageType.end);
+            ServerLog.LogServer("生成帧信息[" + length+ "]", 1);
             byte[] temp2 = protocol.GetByteStream();
 
             FrameList.Add(temp2);
@@ -329,8 +337,10 @@ namespace IDG.FightServer
     }
     public enum MessageType : byte
     {
-        Init = 0,
-        Frame = 1,
-        ClientReady=2,
+        Init =11,
+        Frame = 12,
+        ClientReady=13,
+        RandomSeed=14,
+        end=200,
     }
 }

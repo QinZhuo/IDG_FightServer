@@ -47,5 +47,8 @@
     <Compile Include="Protocol.cs" />
     <Compile Include="ServerLog.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Protocol\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
