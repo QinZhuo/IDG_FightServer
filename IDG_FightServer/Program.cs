@@ -11,36 +11,10 @@ namespace IDG_FightServer
        
         static void Main(string[] args)
         {
-            //Ratio a = new Ratio(-1,2);
-            //Ratio b = new Ratio(-1,2);
-
-            //Console.WriteLine(a.ToString());
-            //a.Sub(b);
-            //Console.WriteLine(a.ToString());
-            //a.Division(b);
-            //Console.WriteLine(a.ToString());
-            //ProtocolBase protocol = new ByteProtocol();
-            //protocol.push(1);//4
-            //protocol.push("123123");//12 +2
-            //protocol.push((byte)3);//1
-            //protocol.push(new Ratio(9, 20));
-            //protocol.push(true);//1
-            //protocol.push("卧槽");//4 +2
-
-            //protocol.InitMessage(protocol.GetByteStream());
-
-            //Console.WriteLine(protocol.getInt32());
-            //Console.WriteLine(protocol.getString());
-            //Console.WriteLine(protocol.getByte());
-            //Console.WriteLine(protocol.getRatio());
-            //Console.WriteLine(protocol.getBoolean());
-            //Console.WriteLine(protocol.getString());
-
             Console.WriteLine("请输入监听的IP");
             string ip = Console.ReadLine();
-            
-            FightServer fightServer = new FightServer();
-            fightServer.StartServer(ip, 12345, 5);
+            var serverManager = new FightServerManager();
+            serverManager.Start(ip + ":44444", "fightData");
             while (true)
             {
                 Console.ReadLine();

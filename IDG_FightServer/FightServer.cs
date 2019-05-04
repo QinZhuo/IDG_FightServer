@@ -5,10 +5,56 @@ using System.Text;
 using System.Net.Sockets;
 using System.Net;
 using System.Timers;
+using Newtonsoft.Json;
 namespace IDG.FightServer
 {
-    class FightServer
+    public class PlayerInfo
     {
+        public string username { get; set; }
+        public string name { get; set; }
+        public bool isReady { get; set; }
+        public Character character { get; set; }
+
+    }
+    public class Character
+    {
+        public int Id { get; set; }
+        public string info { get; set; }
+    }
+    public class FightRoom
+    {
+     
+        public int Id { get; set; }
+        public string url { get; set; }
+        public string ip { get; set; }
+        public string port { get; set; }
+        public List<PlayerInfo> playerInfos { get; set; }
+        public bool InRoom(string userName)
+        {
+            foreach (var pi in playerInfos)
+            {
+                if (pi.username == userName)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public bool CheckAllReady()
+        {
+            foreach (var player in playerInfos)
+            {
+                if (!player.isReady)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+    public class FightServer
+    {
+        public FightRoom fightRoom;
         public IndexObjectPool<Connection> ClientPool
         {
             get
@@ -60,11 +106,13 @@ namespace IDG.FightServer
         protected List<byte[]> _frameList;
        
         private IndexObjectPool<Connection> _clientPool;
-        
+        public string port;
+        public string ip;
         public Socket _serverListener;
         public Timer timer;
         //private int framSize;
         public Byte[][] _stepMessage;
+
        // public byte keyInfo;
         public FightServer()
         {
@@ -72,6 +120,8 @@ namespace IDG.FightServer
         }
         public void StartServer(string host,int port,int maxServerCount)
         {
+            this.port =port.ToString();
+            this.ip = host;
             _serverListener = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             _clientPool = new IndexObjectPool<Connection>(maxServerCount);
             _frameList = new List<byte[]>();
@@ -202,31 +252,31 @@ namespace IDG.FightServer
                 ProcessData(connection);
             }
         }
-        protected void ParseMessage(Connection con,ProtocolBase protocol)
+        protected void ParseMessage(Connection con, ProtocolBase protocol)
         {
-            
-                switch ((MessageType)protocol.getByte())
-                {
-                    case MessageType.Frame:
-                        byte t1 = protocol.getByte();byte[] t2 = protocol.getLastBytes();
-                        //if (framSize != t2.Length) { framSize = t2.Length;
-                        //    for (int i = 0; i < StepMessage.Length; i++)
-                        //    {
-                        //        StepMessage[i] = new byte[framSize];
-                        //    }
-                        //}
-                        StepMessage[con.clientId] = t2;
-                            ClientPool[t1].SetActive();
-                        ServerLog.LogClient("Key:[" + t2.Length + "]", 3, t1);
-                        break;
-                    case MessageType.ClientReady:
-                        break;
-                    default:
-                        return;
-                        //break;
-                }
 
-            
+            switch ((MessageType)protocol.getByte())
+            {
+                case MessageType.Frame:
+                    byte t1 = protocol.getByte(); byte[] t2 = protocol.getLastBytes();
+                    //if (framSize != t2.Length) { framSize = t2.Length;
+                    //    for (int i = 0; i < StepMessage.Length; i++)
+                    //    {
+                    //        StepMessage[i] = new byte[framSize];
+                    //    }
+                    //}
+                    StepMessage[con.clientId] = t2;
+                    ClientPool[t1].SetActive();
+                    ServerLog.LogClient("Key:[" + t2.Length + "]", 3, t1);
+                    break;
+                case MessageType.ClientReady:
+                    break;
+                default:
+                    return;
+                    //break;
+            }
+
+
             if (protocol.Length > 0)
             {
                 ServerLog.LogServer("剩余未解析" + protocol.Length, 1);
@@ -253,7 +303,6 @@ namespace IDG.FightServer
         {
             ProtocolBase protocol = new ByteProtocol();
             protocol.push((byte)MessageType.Init);
-            
             protocol.push(clientId);
             protocol.push((byte)MessageType.end);
             SendToClient(clientId, protocol.GetByteStream());

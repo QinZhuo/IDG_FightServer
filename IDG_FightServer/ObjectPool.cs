@@ -5,7 +5,7 @@ using System.Text;
 
 namespace IDG
 {
-    class IndexObjectPool<T> where T : new()
+    public class IndexObjectPool<T> where T : new()
     {
 
         protected List<T> _objList;
